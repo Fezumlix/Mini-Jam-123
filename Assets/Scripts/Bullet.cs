@@ -5,7 +5,7 @@ using UnityEngine;
 public class Bullet : MonoBehaviour
 {
     private Rigidbody rb;
-    public int damage = 1;
+    public float damage = 1;
 
     private void Awake()
     {
@@ -14,7 +14,7 @@ public class Bullet : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.CompareTag("XP"))
+        if (other.gameObject.CompareTag("XP") || other.gameObject.CompareTag("Gate"))
             return;
         
         if (other.gameObject.layer == LayerMask.NameToLayer("Enemy"))

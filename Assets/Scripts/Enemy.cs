@@ -5,7 +5,7 @@ using Random = UnityEngine.Random;
 
 public class Enemy : MonoBehaviour
 {
-    public int health = 100;
+    public float health = 100;
     public GameObject deathEffect;
     public GameObject hitEffect;
     public int amountOfXP = 20;
@@ -18,7 +18,7 @@ public class Enemy : MonoBehaviour
         healthText.text = health.ToString();
     }
 
-    public void TakeDamage(int damage)
+    public void TakeDamage(float damage)
     {
         health -= damage;
         //Instantiate(hitEffect, transform.position, Quaternion.identity);
@@ -41,7 +41,14 @@ public class Enemy : MonoBehaviour
         }
         
         //Instantiate(deathEffect, transform.position, Quaternion.identity);
-        Debug.Log(transform.position);
         Destroy(gameObject);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("DeathPlane2"))
+        {
+            Destroy(gameObject);
+        }
     }
 }

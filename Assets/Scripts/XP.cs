@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class Gate : MonoBehaviour
+public class XP : MonoBehaviour
 {
     private void OnTriggerEnter(Collider other)
     {
