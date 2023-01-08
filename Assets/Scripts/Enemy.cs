@@ -26,7 +26,7 @@ public class Enemy : MonoBehaviour
         {
             Die();
         }
-        healthText.text = health.ToString();
+        healthText.text = Math.Round(health, 1).ToString();
     }
 
     private void Die()

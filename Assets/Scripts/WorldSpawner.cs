@@ -28,13 +28,13 @@ public class WorldSpawner : MonoBehaviour
         if (transform.position.z > mapGeneratedUntil - 1000)
         {
             ExtendMap(3000 + mapGeneratedUntil);
+            currentPowerLevel += 2f;
             mapGeneratedUntil += 3000;
         }
     }
 
     private void ExtendMap(int goalDistance)
     {
-        Debug.Log("Extending map by " + goalDistance);
         for (int lane = 0; lane < lanes.Length; lane++)
         {
             while (currentLaneProgress[lane] <= goalDistance)
@@ -93,20 +93,18 @@ public class WorldSpawner : MonoBehaviour
         int enemy = Random.Range(0, enemyPrefabs.Length);
         GameObject enemyObject = Instantiate(enemyPrefabs[enemy], new Vector3(lanes[lane], 0,
             -(currentLaneProgress[lane] + distanceAdd)) + transform.position, Quaternion.identity, transform);
-        enemyObject.GetComponent<Enemy>().health = currentPowerLevel * 25f;
+        enemyObject.GetComponent<Enemy>().health = Mathf.RoundToInt(currentPowerLevel * 15f * Random.Range(.5f, 1.5f));
         currentLaneProgress[lane] += distanceAdd + 50;
-        Debug.Log(currentLaneProgress[lane] + "\nlane: " + lane);
     }
     
     private void SpawnGate(int lane)
-    {        
+    {
         int distanceAdd = Random.Range(50, 200);
         int gate = Random.Range(0, gatePrefabs.Length);
         GameObject gateObject = Instantiate(gatePrefabs[gate], new Vector3(lanes[lane], 0,
             -(currentLaneProgress[lane] + distanceAdd)) + transform.position, Quaternion.identity, transform);
         gateObject.transform.rotation = Quaternion.Euler(90, 0, 0);
         currentLaneProgress[lane] += distanceAdd + 50;
-        Debug.Log(currentLaneProgress[lane] + "\nlane: " + lane);
     }
 
     private void SpawnXPChain(int lane)
@@ -118,6 +116,5 @@ public class WorldSpawner : MonoBehaviour
             Instantiate(xpPrefab, new Vector3(lanes[lane], 0, -currentLaneProgress[lane]) + transform.position, Quaternion.identity, transform);
             currentLaneProgress[lane] += 30;
         }
-        Debug.Log(currentLaneProgress[lane] + "\nlane: " + lane);
     }
 }

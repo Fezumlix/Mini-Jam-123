@@ -24,6 +24,14 @@ public class ShipController : MonoBehaviour
     public int currentXP = 0;
     public int xpToNextLevel = 50;
     
+    public float abilityTimer = 0f;
+    public float maxAbilityTimer = 5f;
+    public float nextAbility = 0f;
+    public float maxNextAbility = 20f;
+    public bool abilityUnlocked = false;
+
+    public int planeLevel = 1;
+    
     [Header("UI")]
     public Image xpBar;
     public Image attackSpeedBar;
@@ -33,6 +41,10 @@ public class ShipController : MonoBehaviour
     public Text[] attackSpeedTexts;
     public Text[] attackDamageTexts;
     public Text[] abilityPowerTexts;
+
+    public Image abilityCooldownOverlay;
+    public Text abilityCooldownText;
+    public Image abilityTutorial;
     
     public Image upgradePanel;
     public bool showUpgradePanel = false;
@@ -40,7 +52,7 @@ public class ShipController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        InvokeRepeating("Fire", 0f, 1 / fireRate);
+        StartCoroutine(nameof(Fire));
         UpdateUI();
     }
 
@@ -64,15 +76,37 @@ public class ShipController : MonoBehaviour
             current.y = Mathf.Clamp(current.y + -700f * Time.unscaledDeltaTime, -700f, 0f);
             upgradePanel.GetComponent<RectTransform>().localPosition = current;
         }
+
+        if (!abilityUnlocked)
+            return;
+        
+        if (Input.GetKeyDown(KeyCode.Alpha1) && Time.time > nextAbility)
+        {
+            nextAbility = Time.time + maxNextAbility;
+            abilityTimer = Time.time + maxAbilityTimer + abilityPower;
+            abilityCooldownOverlay.fillAmount = 1f;
+        } else if (Time.time > nextAbility)
+        {
+            abilityCooldownOverlay.fillAmount = 0f;
+            abilityCooldownText.text = "";
+        } else
+        {
+            abilityCooldownOverlay.fillAmount = 1f - (Time.time - nextAbility) / maxNextAbility;
+            abilityCooldownText.text = Mathf.CeilToInt(Mathf.Abs(Time.time - nextAbility)).ToString();
+        }
     }
     
-    public void Fire()
+    public IEnumerator Fire()
     {
-        foreach (Transform laserSpawnPoint in laserSpawnPoints)
+        while (true)
         {
-            GameObject l = Instantiate(laser, laserSpawnPoint.position, Quaternion.Euler(90, 0, 0));
-            l.GetComponent<Rigidbody>().velocity = Vector3.back * 120;
-            l.GetComponent<Bullet>().damage = damage;
+            foreach (Transform laserSpawnPoint in laserSpawnPoints)
+            {
+                GameObject l = Instantiate(laser, laserSpawnPoint.position, Quaternion.Euler(90, 0, 0));
+                l.GetComponent<Rigidbody>().velocity = Vector3.back * 120;
+                l.GetComponent<Bullet>().damage = damage;
+            }
+            yield return new WaitForSeconds(1f / fireRate / (abilityTimer > Time.time ? 3f : 1f));
         }
     }
     
@@ -87,6 +121,9 @@ public class ShipController : MonoBehaviour
             4 => 100,
             5 => 150,
             6 => 250,
+            7 => 300,
+            8 => 400,
+            9 => 500,
             _ => throw new ArgumentOutOfRangeException()
         };
     }
@@ -153,11 +190,10 @@ public class ShipController : MonoBehaviour
         switch (upgrade)
         {
             case "a":
-                UnlockAbility();
                 abilityPower++;
-                break;
-            case "p":
-                abilityPower++;
+                if (!abilityUnlocked)
+                    StartCoroutine(nameof(UnlockAbility));
+                GameObject.Find("ability upgrade").GetComponent<Text>().text = "Upgrade Ability Power";
                 break;
             case "d":
                 damage++;
@@ -171,16 +207,14 @@ public class ShipController : MonoBehaviour
         StartCoroutine(HideUpgradePanel());
     }
 
-    private void UnlockAbility()
+    private IEnumerator UnlockAbility()
     {
-        throw new System.NotImplementedException();
-    }
-
-    public enum PossibleUpgrades
-    {
-        AttackSpeed,
-        AttackDamage,
-        AbilityPower,
-        Ability
+        abilityCooldownOverlay.fillAmount = 0f;
+        abilityUnlocked = true;
+        abilityCooldownText.text = "";
+        abilityTutorial.gameObject.SetActive(true);
+        nextAbility = Time.time;
+        yield return new WaitForSecondsRealtime(15f);
+        abilityTutorial.gameObject.SetActive(false);
     }
 }
